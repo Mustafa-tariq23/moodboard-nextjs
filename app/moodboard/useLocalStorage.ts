@@ -8,6 +8,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, SetValue<T
       const item = typeof window !== 'undefined' ? window.localStorage.getItem(key) : null;
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
+      console.error("Error fetching images:", error);
       return initialValue;
     }
   });
@@ -18,6 +19,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, SetValue<T
         window.localStorage.setItem(key, JSON.stringify(storedValue));
       }
     } catch (error) {
+      console.error("Error fetching images:", error);
     }
   }, [key, storedValue]);
 
@@ -29,6 +31,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, SetValue<T
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
     } catch (error) {
+      console.error("Error fetching images:", error);
     }
   };
 

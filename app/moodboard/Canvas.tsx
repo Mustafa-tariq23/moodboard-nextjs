@@ -1,18 +1,20 @@
 import { useState, useRef } from 'react';
 import CanvasImage from '../../components/CanvasImage';
 import html2canvas from 'html2canvas-pro';
+type CanvasImageType = {
+  id: string;
+  src: string;
+  position: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+};
+
 type CanvasProps = {
-  images: Array<{
-    id: string;
-    src: string;
-    position: {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    };
-  }>;
-  onImagesChange: (images: any[]) => void;
+  images: CanvasImageType[];
+  onImagesChange: (images: CanvasImageType[]) => void;
 };
 
 export default function Canvas({ images, onImagesChange }: CanvasProps) {
@@ -72,7 +74,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
     }
   };
 
-  const handlePositionChange = (id: string, position: any) => {
+  const handlePositionChange = (id: string, position: CanvasImageType["position"]) => {
     onImagesChange(
       images.map((img) => (img.id === id ? { ...img, position } : img))
     );
@@ -110,7 +112,8 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
       }
 
     } catch (error) {
-      alert('Failed to save the design. Please try again.');
+      alert(`Failed to save the design. Please try again.`);
+      console.error("Error fetching images:", error);
     }
   };
 

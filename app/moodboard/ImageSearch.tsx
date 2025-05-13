@@ -5,6 +5,12 @@ type ImageSearchProps = {
   onImageDragStart: (e: React.DragEvent, src: string) => void;
 };
 
+type UnsplashImage = {
+  id: string;
+  urls: { regular: string };
+  alt_description: string;
+};
+
 export default function ImageSearch({ onImageDragStart }: ImageSearchProps) {
 
   useEffect(() => {
@@ -19,6 +25,7 @@ export default function ImageSearch({ onImageDragStart }: ImageSearchProps) {
         setIsLoading(false);
       } catch (error) {
         setIsLoading(false);
+        console.error("Error fetching images:", error);
       }
     }
     fetchImages();
@@ -26,7 +33,7 @@ export default function ImageSearch({ onImageDragStart }: ImageSearchProps) {
 
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [images, setImages] = useState<any[]>([]);
+  const [images, setImages] = useState<UnsplashImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -45,6 +52,7 @@ export default function ImageSearch({ onImageDragStart }: ImageSearchProps) {
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
+      console.error("Error fetching images:", error);
     }
   };
 
@@ -75,7 +83,7 @@ export default function ImageSearch({ onImageDragStart }: ImageSearchProps) {
 
       <div className="flex-1 overflow-y-auto">
         <div className="grid grid-cols-2 gap-4">
-          {images?.map((image : any) => (
+          {images?.map((image: UnsplashImage) => (
             <ImageCard
               key={image.id}
               src={image.urls.regular}
