@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 type Position = {
   x: number;
@@ -31,10 +31,47 @@ export default function CanvasImage({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const imageRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging && imageRef.current) {
+        const canvasRect = imageRef.current.parentElement?.getBoundingClientRect();
+        if (canvasRect) {
+          const newX = e.clientX - canvasRect.left - dragOffset.x;
+          const newY = e.clientY - canvasRect.top - dragOffset.y;
+
+          const updatedPosition = {
+            x: Math.max(0, Math.min(newX, canvasRect.width - position.width)),
+            y: Math.max(0, Math.min(newY, canvasRect.height - position.height)),
+            width: position.width,
+            height: position.height,
+          };
+
+          setPosition(updatedPosition);
+          onPositionChange(updatedPosition);
+        }
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (isDragging) {
+        setIsDragging(false);
+        if (dragFlagRef?.current) dragFlagRef.current = false;
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset, position, onPositionChange]);
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (imageRef.current) {
       if (dragFlagRef?.current !== undefined) {
-        dragFlagRef.current = true; // <-- Set flag when internal drag starts
+        dragFlagRef.current = true;
       }
       const rect = imageRef.current.getBoundingClientRect();
       setDragOffset({
@@ -46,36 +83,10 @@ export default function CanvasImage({
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging && imageRef.current) {
-      const canvasRect = imageRef.current.parentElement?.getBoundingClientRect();
-      if (canvasRect) {
-        const newX = e.clientX - canvasRect.left - dragOffset.x;
-        const newY = e.clientY - canvasRect.top - dragOffset.y;
-
-        // Ensure the image stays within canvas boundaries
-        const updatedPosition = {
-          x: Math.max(0, Math.min(newX, canvasRect.width - position.width)),
-          y: Math.max(0, Math.min(newY, canvasRect.height - position.height)),
-          width: position.width,
-          height: position.height,
-        };
-
-        setPosition(updatedPosition);
-        onPositionChange(updatedPosition);
-      }
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-  
-
   return (
     <div
       ref={imageRef}
-      className={`absolute cursor-move ${isDragging ? "ring-red-50" : isSelected ? 'ring-2 ring-blue-500' : ''}`}
+      className={`absolute cursor-move ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
@@ -83,12 +94,12 @@ export default function CanvasImage({
         height: `${position.height}px`,
       }}
       onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onClick={onClick}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
     >
       <img src={src} crossOrigin="anonymous" alt="Canvas image" className="w-full h-full object-cover" />
-
       {isSelected && (
         <button
           className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"

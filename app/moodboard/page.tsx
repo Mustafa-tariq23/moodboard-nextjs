@@ -1,6 +1,5 @@
 'use client';
-
-import { useState, useEffect } from 'react';
+import React from 'react';
 import ImageSearch from './ImageSearch';
 import Canvas from './Canvas';
 import { useLocalStorage } from './useLocalStorage';
@@ -31,13 +30,13 @@ export default function MoodboardPage() {
           Search for images, drag them onto the canvas, and create your perfect mood board
         </p>
       </header>
-      
+
       <main className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto h-svh" style={{ height: 'calc(100vh - 200px)' }}>
         <div className="lg:col-span-1 max-h-full overflow-scroll">
           <ImageSearch onImageDragStart={handleImageDragStart} />
         </div>
         <div className="lg:col-span-2 max-h-full">
-          <Canvas images={images} onImagesChange={setImages} />
+            <Canvas images={images} onImagesChange={setImages} />
         </div>
       </main>
     </div>

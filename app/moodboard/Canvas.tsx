@@ -49,7 +49,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
         id: `img-${Date.now()}`,
         src: await toBase64(src),
         position: {
-          x: e.clientX - canvasRect.left - 100, // Center the image
+          x: e.clientX - canvasRect.left - 100,
           y: e.clientY - canvasRect.top - 100,
           width: 200,
           height: 200,
@@ -83,6 +83,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
       if (canvasRef.current) {
         if (!canvasRef.current) return alert('Canvas not found');
         const rect = canvasRef.current.getBoundingClientRect();
+        setSelectedImageId(null);
 
         html2canvas(canvasRef.current,
           {
@@ -114,9 +115,13 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
     }
   };
 
+  console.log(selectedImageId)
+
   return (
-    <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md p-4 text-gray-700 overflow-scroll">
-      <div className="flex justify-between items-center mb-4">
+    <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md p-4 text-gray-700 overflow-scroll" >
+      <div className="flex justify-between items-center mb-4" 
+        onClick={()=>setSelectedImageId("")}
+      >
         <h2 className="text-xl font-bold">Canvas</h2>
         <div className="flex gap-2">
           <button
