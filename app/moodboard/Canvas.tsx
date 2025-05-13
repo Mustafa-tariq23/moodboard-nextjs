@@ -16,25 +16,32 @@ type CanvasProps = {
 };
 
 export default function Canvas({ images, onImagesChange }: CanvasProps) {
+  const isInternalDrag = useRef(false);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const toBase64 = (url: string) =>
-  fetch(url)
-    .then((res) => res.blob())
-    .then(
-      (blob) =>
-        new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        })
-    );
+    fetch(url)
+      .then((res) => res.blob())
+      .then(
+        (blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          })
+      );
 
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
+
+    if (isInternalDrag.current) {
+      isInternalDrag.current = false;
+      return;
+    }
+
     const src = e.dataTransfer.getData('text/plain');
     if (src && canvasRef.current) {
       const canvasRect = canvasRef.current.getBoundingClientRect();
@@ -52,6 +59,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
       setSelectedImageId(newImage.id);
     }
   };
+
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -107,7 +115,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md p-4 text-gray-700">
+    <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md p-4 text-gray-700 overflow-scroll">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Canvas</h2>
         <div className="flex gap-2">
@@ -135,6 +143,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
             onPositionChange={(position) => handlePositionChange(image.id, position)}
             isSelected={selectedImageId === image.id}
             onClick={() => setSelectedImageId(image.id)}
+            dragFlagRef={isInternalDrag}
           />
         ))}
         {images.length === 0 && (

@@ -14,6 +14,7 @@ type CanvasImageProps = {
   onPositionChange: (position: Position) => void;
   isSelected: boolean;
   onClick: () => void;
+  dragFlagRef?: React.MutableRefObject<boolean>;
 };
 
 export default function CanvasImage({
@@ -23,6 +24,7 @@ export default function CanvasImage({
   onPositionChange,
   isSelected,
   onClick,
+  dragFlagRef,
 }: CanvasImageProps) {
   const [position, setPosition] = useState<Position>(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
@@ -31,6 +33,9 @@ export default function CanvasImage({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (imageRef.current) {
+      if (dragFlagRef?.current !== undefined) {
+        dragFlagRef.current = true; // <-- Set flag when internal drag starts
+      }
       const rect = imageRef.current.getBoundingClientRect();
       setDragOffset({
         x: e.clientX - rect.left,
@@ -70,7 +75,7 @@ export default function CanvasImage({
   return (
     <div
       ref={imageRef}
-      className={`absolute cursor-move ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+      className={`absolute cursor-move ${isDragging ? "ring-red-50" : isSelected ? 'ring-2 ring-blue-500' : ''}`}
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
@@ -83,6 +88,7 @@ export default function CanvasImage({
       onClick={onClick}
     >
       <img src={src} crossOrigin="anonymous" alt="Canvas image" className="w-full h-full object-cover" />
+
       {isSelected && (
         <button
           className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"

@@ -32,11 +32,11 @@ export default function MoodboardPage() {
         </p>
       </header>
       
-      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto" style={{ height: 'calc(100vh - 200px)' }}>
-        <div className="lg:col-span-1">
+      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto h-svh" style={{ height: 'calc(100vh - 200px)' }}>
+        <div className="lg:col-span-1 max-h-full overflow-scroll">
           <ImageSearch onImageDragStart={handleImageDragStart} />
         </div>
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 max-h-full">
           <Canvas images={images} onImagesChange={setImages} />
         </div>
       </main>
