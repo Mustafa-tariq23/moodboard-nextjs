@@ -110,7 +110,6 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
       }
 
     } catch (error) {
-      console.error('Failed to save design:', error);
       alert('Failed to save the design. Please try again.');
     }
   };

@@ -17,10 +17,7 @@ export default function ImageSearch({ onImageDragStart }: ImageSearchProps) {
         const data = await response.json();
         setImages(data.results);
         setIsLoading(false);
-
-        console.log("response for fetch req", response);
       } catch (error) {
-        console.error("Error fetching images:", error);
         setIsLoading(false);
       }
     }
@@ -43,22 +40,12 @@ export default function ImageSearch({ onImageDragStart }: ImageSearchProps) {
           "query": searchQuery,
         }
       })
-      console.log("response for fetch req", response);
       const data = await response.json();
       setImages(data.results);
       setIsLoading(false);
-
-      console.log("response", response);
-
     } catch (error) {
-      console.error("Error fetching images:", error);
       setIsLoading(false);
     }
-
-    // setTimeout(() => {
-    //   setImages(MOCK_IMAGES);
-    //   setIsLoading(false);
-    // }, 500);
   };
 
   return (
@@ -72,7 +59,6 @@ export default function ImageSearch({ onImageDragStart }: ImageSearchProps) {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value)
-              console.log("searchQuery", searchQuery);
             }}
             placeholder="Search for images..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
