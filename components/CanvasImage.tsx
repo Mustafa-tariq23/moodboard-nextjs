@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 
 type Position = {
   x: number;
@@ -9,91 +10,41 @@ type Position = {
 
 type CanvasImageProps = {
   src: string;
+  id: string;
   initialPosition: Position;
   onRemove: () => void;
-  onPositionChange: (position: Position) => void;
   isSelected: boolean;
   onClick: () => void;
-  dragFlagRef?: React.MutableRefObject<boolean>;
 };
 
 export default function CanvasImage({
+  id,
   src,
   initialPosition,
   onRemove,
-  onPositionChange,
   isSelected,
   onClick,
-  dragFlagRef,
 }: CanvasImageProps) {
-  const [position, setPosition] = useState<Position>(initialPosition);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const imageRef = useRef<HTMLDivElement>(null);
+  const {attributes, listeners, setNodeRef, transform, isDragging} = useDraggable({
+    id: id
+  });
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging && imageRef.current) {
-        const canvasRect = imageRef.current.parentElement?.getBoundingClientRect();
-        if (canvasRect) {
-          const newX = e.clientX - canvasRect.left - dragOffset.x;
-          const newY = e.clientY - canvasRect.top - dragOffset.y;
-
-          const updatedPosition = {
-            x: Math.max(0, Math.min(newX, canvasRect.width - position.width)),
-            y: Math.max(0, Math.min(newY, canvasRect.height - position.height)),
-            width: position.width,
-            height: position.height,
-          };
-
-          setPosition(updatedPosition);
-          onPositionChange(updatedPosition);
-        }
-      }
-    };
-
-    const handleMouseUp = () => {
-      if (isDragging) {
-        setIsDragging(false);
-        if (dragFlagRef?.current) dragFlagRef.current = false;
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, dragOffset, position, onPositionChange]);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (imageRef.current) {
-      if (dragFlagRef?.current !== undefined) {
-        dragFlagRef.current = true;
-      }
-      const rect = imageRef.current.getBoundingClientRect();
-      setDragOffset({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      });
-      setIsDragging(true);
-      onClick();
-    }
-  };
+  const style = {
+  left: `${initialPosition.x}px`,
+  top: `${initialPosition.y}px`,
+  width: `${initialPosition.width}px`,
+  height: `${initialPosition.height}px`,
+  transform: CSS.Translate.toString(transform),
+  zIndex: isDragging ? 100 : 'auto',
+};
 
   return (
     <div
-      ref={imageRef}
+      ref={setNodeRef}
       className={`absolute cursor-move ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
-      style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        width: `${position.width}px`,
-        height: `${position.height}px`,
-      }}
-      onMouseDown={handleMouseDown}
+      style={style}
+      {...listeners}
+      {...attributes}
       onClick={(e) => {
         e.stopPropagation();
         onClick();

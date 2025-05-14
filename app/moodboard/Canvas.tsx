@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import CanvasImage from '../../components/CanvasImage';
 import html2canvas from 'html2canvas-pro';
+import { closestCenter, DndContext, DragEndEvent, PointerSensor, Sensor, useSensor, useSensors } from '@dnd-kit/core';
+import { restrictToParentElement } from '@dnd-kit/modifiers';
 type CanvasImageType = {
   id: string;
   src: string;
@@ -21,6 +23,27 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
   const isInternalDrag = useRef(false);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  function handleDragEnd(event: DragEndEvent) {
+  const { active, delta } = event;
+  const activeId = active.id as string;
+
+  onImagesChange(
+    images.map((img : CanvasImageType) => {
+      if (img.id === activeId) {
+        return {
+          ...img,
+          position: {
+            ...img.position,
+            x: img.position.x + delta.x,
+            y: img.position.y + delta.y,
+          },
+        };
+      }
+      return img;
+    })
+  )
+}
 
   const toBase64 = (url: string) =>
     fetch(url)
@@ -74,12 +97,6 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
     }
   };
 
-  const handlePositionChange = (id: string, position: CanvasImageType["position"]) => {
-    onImagesChange(
-      images.map((img) => (img.id === id ? { ...img, position } : img))
-    );
-  };
-
   const handleExportJSON = () => {
     try {
       if (canvasRef.current) {
@@ -117,7 +134,13 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
     }
   };
 
-  console.log(selectedImageId)
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }
+  ))
 
   return (
     <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md p-4 text-gray-700 overflow-scroll" >
@@ -135,6 +158,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
         </div>
       </div>
 
+     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToParentElement]}>
       <div
         ref={canvasRef}
         className="flex-1 relative bg-gray-100 border-2 border-dashed border-gray-300 rounded-md overflow-hidden"
@@ -144,13 +168,12 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
         {images.map((image) => (
           <CanvasImage
             key={image.id}
+            id={image.id}
             src={image.src}
             initialPosition={image.position}
             onRemove={() => handleRemoveImage(image.id)}
-            onPositionChange={(position) => handlePositionChange(image.id, position)}
             isSelected={selectedImageId === image.id}
             onClick={() => setSelectedImageId(image.id)}
-            dragFlagRef={isInternalDrag}
           />
         ))}
         {images.length === 0 && (
@@ -159,6 +182,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
           </div>
         )}
       </div>
+      </DndContext>
     </div>
   );
 }
