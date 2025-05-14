@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import CanvasImage from '../../components/CanvasImage';
 import html2canvas from 'html2canvas-pro';
-import { closestCenter, DndContext, DragEndEvent, PointerSensor, Sensor, useSensor, useSensors } from '@dnd-kit/core';
+import { closestCenter, DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 type CanvasImageType = {
   id: string;
