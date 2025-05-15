@@ -1,8 +1,30 @@
-import { useState, useRef } from 'react';
+import {
+  useState,
+  useRef,
+  type ChangeEvent
+} from 'react';
 import CanvasImage from '../../components/CanvasImage';
 import html2canvas from 'html2canvas-pro';
-import { closestCenter, DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors
+} from '@dnd-kit/core';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
+import {
+  ReactSketchCanvas,
+  type ReactSketchCanvasRef,
+} from "react-sketch-canvas";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@/components/ui/tabs"
+import { Button } from '@/components/ui/button';
 type CanvasImageType = {
   id: string;
   src: string;
@@ -20,30 +42,71 @@ type CanvasProps = {
 };
 
 export default function Canvas({ images, onImagesChange }: CanvasProps) {
+  const canvasSketchRef = useRef<ReactSketchCanvasRef>(null);
+  const [eraseMode, setEraseMode] = useState(false);
+  const [strokeWidth, setStrokeWidth] = useState(5);
+  const [eraserWidth, setEraserWidth] = useState(10);
+  const [strokeColor, setStrokeColor] = useState("#000000");
+  const [canvasColor, setCanvasColor] = useState("#ffffff");
+
   const isInternalDrag = useRef(false);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  function handleDragEnd(event: DragEndEvent) {
-  const { active, delta } = event;
-  const activeId = active.id as string;
+  // sketch canvas functions
 
-  onImagesChange(
-    images.map((img : CanvasImageType) => {
-      if (img.id === activeId) {
-        return {
-          ...img,
-          position: {
-            ...img.position,
-            x: img.position.x + delta.x,
-            y: img.position.y + delta.y,
-          },
-        };
-      }
-      return img;
-    })
-  )
-}
+  const handleEraserClick = () => {
+    setEraseMode(true);
+    canvasSketchRef.current?.eraseMode(true);
+  };
+
+  const handlePenClick = () => {
+    setEraseMode(false);
+    canvasSketchRef.current?.eraseMode(false);
+  };
+
+  const handleStrokeWidthChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setStrokeWidth(+event.target.value);
+  };
+
+  const handleEraserWidthChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setEraserWidth(+event.target.value);
+  };
+
+  // color functions
+
+  const handleStrokeColorChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setStrokeColor(event.target.value);
+  };
+
+  const handleCanvasColorChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setCanvasColor(event.target.value);
+  };
+
+
+  // end of sketch canvas functions
+
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, delta } = event;
+    const activeId = active.id as string;
+
+    onImagesChange(
+      images.map((img: CanvasImageType) => {
+        if (img.id === activeId) {
+          return {
+            ...img,
+            position: {
+              ...img.position,
+              x: img.position.x + delta.x,
+              y: img.position.y + delta.y,
+            },
+          };
+        }
+        return img;
+      })
+    )
+  }
 
   const toBase64 = (url: string) =>
     fetch(url)
@@ -140,49 +203,152 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
         distance: 5,
       },
     }
-  ))
+    ))
 
   return (
-    <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md p-4 text-gray-700 overflow-scroll" >
-      <div className="flex justify-between items-center mb-4" 
-        onClick={()=>setSelectedImageId("")}
-      >
-        <h2 className="text-xl font-bold">Canvas</h2>
-        <div className="flex gap-2">
-          <button
-            onClick={handleExportJSON}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Save Design
-          </button>
-        </div>
-      </div>
 
-     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToParentElement]}>
-      <div
-        ref={canvasRef}
-        className="flex-1 relative bg-gray-100 border-2 border-dashed border-gray-300 rounded-md overflow-hidden"
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-      >
-        {images.map((image) => (
-          <CanvasImage
-            key={image.id}
-            id={image.id}
-            src={image.src}
-            initialPosition={image.position}
-            onRemove={() => handleRemoveImage(image.id)}
-            isSelected={selectedImageId === image.id}
-            onClick={() => setSelectedImageId(image.id)}
-          />
-        ))}
-        {images.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-            Drag and drop images here
+    <Tabs defaultValue="images" className="w-full h-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="images">Images</TabsTrigger>
+        <TabsTrigger value="draw">Draw</TabsTrigger>
+      </TabsList>
+      <TabsContent value="images">
+        <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md p-4 text-gray-700 overflow-scroll" >
+          <div className="flex justify-between items-center mb-4"
+            onClick={() => setSelectedImageId("")}
+          >
+            <h2 className="text-xl font-bold">Canvas</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={handleExportJSON}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                Save Design
+              </button>
+            </div>
           </div>
-        )}
-      </div>
-      </DndContext>
-    </div>
+
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToParentElement]}>
+            <div
+              ref={canvasRef}
+              className="flex-1 relative bg-gray-100 border-2 border-dashed border-gray-300 rounded-md overflow-hidden"
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+            >
+              {images.map((image) => (
+                <CanvasImage
+                  key={image.id}
+                  id={image.id}
+                  src={image.src}
+                  initialPosition={image.position}
+                  onRemove={() => handleRemoveImage(image.id)}
+                  isSelected={selectedImageId === image.id}
+                  onClick={() => setSelectedImageId(image.id)}
+                />
+              ))}
+              {images.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                  Drag and drop images here
+                </div>
+              )}
+            </div>
+          </DndContext>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="draw">
+        <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md p-4 text-gray-700">
+          <h2 className="text-xl font-bold text-center">Drawing Canvas</h2>
+          <div className="flex justify-between items-center mb-4 p-0">
+            <div className='flex items-center gap-2'>
+              <Button
+                type="button"
+                className="btn btn-sm btn-outline-primary"
+                disabled={!eraseMode}
+                onClick={handlePenClick}
+              >
+                Pen
+              </Button>
+              <Button
+                type="button"
+                className="btn btn-sm btn-outline-primary"
+                disabled={eraseMode}
+                onClick={handleEraserClick}
+              >
+                Eraser
+              </Button>
+              <Button
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onClick={() => canvasSketchRef.current?.clearCanvas()}
+              >
+                Clear
+              </Button>
+              <div>
+                <label htmlFor="strokeWidth" className="form-label">
+                  Stroke width
+                </label>
+                <input
+                  disabled={eraseMode}
+                  type="range"
+                  className="form-range"
+                  min="1"
+                  max="20"
+                  step="1"
+                  id="strokeWidth"
+                  value={strokeWidth}
+                  onChange={handleStrokeWidthChange}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="eraserWidth" className="form-label">
+                  Eraser width
+                </label>
+                <input
+                  disabled={!eraseMode}
+                  type="range"
+                  className="form-range"
+                  min="1"
+                  max="20"
+                  step="1"
+                  id="eraserWidth"
+                  value={eraserWidth}
+                  onChange={handleEraserWidthChange}
+                />
+              </div>
+              <div>
+                <div className="d-flex gap-2 align-items-center ">
+                  <label htmlFor="color">Stroke color</label>
+                  <input
+                    type="color"
+                    value={strokeColor}
+                    onChange={handleStrokeColorChange}
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="color">Canvas color</label>
+                <input
+                  type="color"
+                  value={canvasColor}
+                  onChange={handleCanvasColorChange}
+                />
+              </div>
+            </div>
+          </div>
+            <div className="flex-1 border-2 border-gray-300 rounded-md overflow-hidden">
+              <ReactSketchCanvas
+                ref={canvasSketchRef}
+                width="100%"
+                height="100%"
+                strokeColor={strokeColor}
+                canvasColor={canvasColor}
+                strokeWidth={strokeWidth}
+                eraserWidth={eraserWidth}
+              />
+            </div>
+        </div>
+      </TabsContent>
+    </Tabs >
   );
 }
