@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/tabs"
 
 import { Button } from '@/components/ui/button';
-import { CrossIcon, X } from 'lucide-react';
+import { X } from 'lucide-react';
 type CanvasImageType = {
   id: string;
   src: string;
