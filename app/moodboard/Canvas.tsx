@@ -461,7 +461,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                         type="text"
                         className="form-control border border-gray-300 p-2 rounded-md"
                         id="backgroundImage"
-                        placeholder="URL of the image to use as a background"
+                        placeholder="Drop and image in this section to add it to the canvas"
                         value={backgroundImage}
                         onChange={handleBackgroundImageChange}
                       />
