@@ -2,7 +2,8 @@ import {
   useState,
   useRef,
   type ChangeEvent,
-  useMemo
+  useMemo,
+  useEffect
 } from 'react';
 
 import CanvasImage from '../../components/CanvasImage';
@@ -284,6 +285,21 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
       },
     }
     ))
+  // Use useEffect to handle DOM operations after component mounts
+  useEffect(() => {
+    const handleLoad = () => {
+      const canvas_with_mask = document.querySelector("#react-sketch-canvas__stroke-group-0");
+      canvas_with_mask?.removeAttribute("mask");
+    };
+    
+    // Run once on mount and also add load event listener
+    handleLoad();
+    window.addEventListener('load', handleLoad);
+    
+    // Cleanup event listener on unmount
+    return () => {
+      window.removeEventListener('load', handleLoad);
+    };  })
 
   return (
 
@@ -461,7 +477,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                         type="text"
                         className="form-control border border-gray-300 p-2 rounded-md"
                         id="backgroundImage"
-                        placeholder="Drop and image in this section to add it to the canvas"
+                        placeholder="Drop image here..."
                         value={backgroundImage}
                         onChange={handleBackgroundImageChange}
                       />
@@ -493,15 +509,13 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
             </div>
             <div className="flex-1 border-2 border-gray-300 rounded-md overflow-hidden">
               <ReactSketchCanvas
-
                 ref={canvasSketchRef}
                 backgroundImage={backgroundImage}
                 preserveBackgroundImageAspectRatio={preserveAspectRatio}
-                width="100%"
-                height="100%"
+                style={{ width: "100%", height: "100%" }}
                 strokeColor={strokeColor}
-                canvasColor={canvasColor}
                 strokeWidth={strokeWidth}
+                canvasColor={canvasColor}
                 eraserWidth={eraserWidth}
               />
             </div>
