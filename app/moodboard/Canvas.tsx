@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/tabs"
 
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { BrushCleaning, Download, Eraser, Pen, Redo2, Undo2, X } from 'lucide-react';
 type CanvasImageType = {
   id: string;
   src: string;
@@ -56,7 +56,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
 
   const somePreserveAspectRatio = useMemo(
     () => [
-      "none",
+      "AspectRatio",
       "xMinYMin",
       "xMidYMin",
       "xMaxYMin",
@@ -80,9 +80,9 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
   const [strokeColor, setStrokeColor] = useState("#000000");
   const [canvasColor, setCanvasColor] = useState("#ffffff");
   const [backgroundImage, setBackgroundImage] = useState("")
-  const [preserveAspectRatio, setPreserveAspectRatio] = useState<SomePreserveAspectRatio>("none");
+  const [preserveAspectRatio, setPreserveAspectRatio] = useState<SomePreserveAspectRatio>("AspectRatio");
 
-
+  const [open, setOpen] = useState(false);
   const isInternalDrag = useRef(false);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -163,6 +163,34 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
     }
 
     console.log(canvasData);
+  };
+
+  // image function
+
+  const handleSketchImageDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+
+    // Handle file drops
+    const file = e.dataTransfer.files[0];
+    if (file?.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setBackgroundImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    // Handle URL drops from sidebar
+    const imageUrl = e.dataTransfer.getData('text/plain');
+    if (imageUrl) {
+      try {
+        const dataUrl = await toBase64(imageUrl);
+        setBackgroundImage(dataUrl);
+      } catch (error) {
+        console.error("Error loading image:", error);
+      }
+    }
   };
 
   // end of sketch canvas functions
@@ -291,25 +319,26 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
       const canvas_with_mask = document.querySelector("#react-sketch-canvas__stroke-group-0");
       canvas_with_mask?.removeAttribute("mask");
     };
-    
+
     // Run once on mount and also add load event listener
     handleLoad();
     window.addEventListener('load', handleLoad);
-    
+
     // Cleanup event listener on unmount
     return () => {
       window.removeEventListener('load', handleLoad);
-    };  })
+    };
+  })
 
   return (
 
     <Tabs onValueChange={setActiveTab} defaultValue="images" className="w-full h-full">
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="images">Images</TabsTrigger>
-        <TabsTrigger value="draw">Draw</TabsTrigger>
+        <TabsTrigger value="images">MoodBoard</TabsTrigger>
+        <TabsTrigger value="draw">Drawing Canvas</TabsTrigger>
       </TabsList>
       <TabsContent value="images">
-        <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md p-4 text-gray-700 overflow-scroll" >
+        <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-xl p-4 text-gray-700 overflow-scroll" >
           <div className="flex justify-between items-center mb-4"
             onClick={() => setSelectedImageId("")}
           >
@@ -319,7 +348,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                 onClick={handleExportJSON}
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                Save Design
+                <Download />
               </button>
             </div>
           </div>
@@ -354,7 +383,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
 
       <TabsContent value="draw">
         {activeTab === 'draw' && (
-          <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md p-4 text-gray-700">
+          <div className="w-full h-full flex flex-col bg-white shadow-xl rounded-lg p-4 text-gray-700">
             <h2 className="text-xl font-bold text-center">Drawing Canvas</h2>
             <div className="flex justify-between items-center mb-4 p-0">
               <div className='flex flex-col justify-center items-center gap-2 w-full'>
@@ -367,7 +396,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                       disabled={!eraseMode}
                       onClick={handlePenClick}
                     >
-                      Pen
+                      <Pen />
                     </Button>
                     <Button
                       type="button"
@@ -375,136 +404,132 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                       disabled={eraseMode}
                       onClick={handleEraserClick}
                     >
-                      Eraser
+                      <Eraser />
                     </Button>
                     <Button
                       type="button"
                       className="btn btn-sm btn-outline-primary bg-blue-500 hover:bg-blue-600"
                       onClick={handleUndoClick}
                     >
-                      Undo
+                      <Undo2 />
                     </Button>
                     <Button
                       type="button"
-                      className="btn btn-sm btn-outline-primary"
+                      className="btn btn-sm btn-outline-primary bg-blue-500 hover:bg-blue-600"
                       onClick={handleRedoClick}
                     >
-                      Redo
+                      <Redo2 />
                     </Button>
                     <Button
                       className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       onClick={handleClearClick}
                     >
-                      Clear
+                      <BrushCleaning />
                     </Button>
                   </div>
-                  <div>
+                  <div className='flex gap-6 items-center'>
+                    <div className='flex items-center justify-center gap-4'>
+                      {/* background image */}
+                      <div className='flex flex-col gap-2 items-center justify-center'>
+                        <div className='flex items-center gap-2'>
+                          <div
+                            className="form-control border border-gray-300 p-2 rounded-md w-full h-9 flex items-center justify-center cursor-pointer"
+                            onDrop={handleSketchImageDrop}
+                            onDragOver={(e) => e.preventDefault()}
+                          >
+                            {backgroundImage ? 'Image uploaded' : 'Drop image here...'}
+                          </div>
+                          {backgroundImage && <div onClick={() => setBackgroundImage("")}><X className='bg-white hover:bg-gray-300 rounded-md' /></div>
+                          }
+                        </div>
+                      </div>
+                      {/* preserve aspect ratio */}
+                      <div className='flex flex-col items-center justify-center gap-2'>
+                        <select
+                          id="preserveAspectRatio"
+                          className="form-select form-select-sm border border-gray-300 p-2 rounded-md"
+                          aria-label="Preserve Aspect Ratio options"
+                          value={preserveAspectRatio}
+                          onChange={handlePreserveAspectRatioChange}
+                        >
+                          {somePreserveAspectRatio.map((value) => (
+                            <option key={value} value={value}>
+                              {value}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
                     <Button
                       className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       onClick={handleDownloadSketch}
                     >
-                      Download
+                      <Download />
                     </Button>
                   </div>
                 </div>
                 {/* filters */}
-                <div className='flex items-center justify-center gap-4'>
+                <div className='flex items-center justify-between w-full gap-4 pb-4'>
                   {/* pen width */}
-                  <div>
-                    <label htmlFor="strokeWidth" className="form-label">
-                      Stroke width
-                    </label>
-                    <input
-                      disabled={eraseMode}
-                      type="range"
-                      className="form-range"
-                      min="1"
-                      max="20"
-                      step="1"
-                      id="strokeWidth"
-                      value={strokeWidth}
-                      onChange={handleStrokeWidthChange}
-                    />
-                  </div>
-                  {/* eraser width */}
-                  <div>
-                    <label htmlFor="eraserWidth" className="form-label">
-                      Eraser width
-                    </label>
-                    <input
-                      disabled={!eraseMode}
-                      type="range"
-                      className="form-range"
-                      min="1"
-                      max="20"
-                      step="1"
-                      id="eraserWidth"
-                      value={eraserWidth}
-                      onChange={handleEraserWidthChange}
-                    />
-                  </div>
-                  {/* pen color */}
-                  <div className='flex flex-col gap-2 items-center'>
-                    <div className="d-flex gap-2 align-items-center ">
-                      <label htmlFor="color">Stroke color</label>
+                  <div className='flex items-center gap-4'>
+                    <div className='flex flex-col items-start gap-1'>
+                      <label htmlFor="strokeWidth" className="form-label">
+                        Stroke width: {strokeWidth}
+                      </label>
                       <input
-                        type="color"
-                        value={strokeColor}
-                        onChange={handleStrokeColorChange}
+                        disabled={eraseMode}
+                        type="range"
+                        className="form-range"
+                        min="1"
+                        max="20"
+                        step="1"
+                        id="strokeWidth"
+                        value={strokeWidth}
+                        onChange={handleStrokeWidthChange}
+                      />
+                    </div>
+                    {/* eraser width */}
+                    <div className='flex flex-col items-start gap-1'>
+                      <label htmlFor="eraserWidth" className="form-label">
+                        Eraser width: {eraserWidth}
+                      </label>
+                      <input
+                        disabled={!eraseMode}
+                        type="range"
+                        className="form-range"
+                        min="1"
+                        max="20"
+                        step="1"
+                        id="eraserWidth"
+                        value={eraserWidth}
+                        onChange={handleEraserWidthChange}
                       />
                     </div>
                   </div>
-                  {/* canvas color */}
-                  <div className='flex flex-col gap-2 items-center'>
-                    <label htmlFor="color">Canvas color</label>
-                    <input
-                      type="color"
-                      value={canvasColor}
-                      onChange={handleCanvasColorChange}
-                    />
+                  {/* pen color */}
+                  <div className='flex items-center gap-4'>
+                    <div className='flex flex-col gap-2 items-center'>
+                      <div className="flex flex-col gap-2 align-items-center width-fit text-nowrap text-center">
+                        <label htmlFor="color">Stroke</label>
+                        <input
+                          type="color"
+                          value={strokeColor}
+                          onChange={handleStrokeColorChange}
+                        />
+                      </div>
+                    </div>
+                    {/* canvas color */}
+                    <div className='flex flex-col gap-2 items-center w-fit text-nowrap'>
+                      <label htmlFor="color">Canvas</label>
+                      <input
+                        type="color"
+                        value={canvasColor}
+                        onChange={handleCanvasColorChange}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* third row - background image */}
-                <div className='flex items-center justify-center gap-4'>
-                  {/* background image */}
-                  <div className='flex flex-col gap-2 items-center justify-center'>
-                    <label htmlFor="backgroundImage" className="form-label">
-                      Background Image
-                    </label>
-                    <div className='flex items-center gap-2'>
-                      <input
-                        type="text"
-                        className="form-control border border-gray-300 p-2 rounded-md"
-                        id="backgroundImage"
-                        placeholder="Drop image here..."
-                        value={backgroundImage}
-                        onChange={handleBackgroundImageChange}
-                      />
-                      {backgroundImage && <div onClick={() => setBackgroundImage("")}><X className='bg-white hover:bg-gray-300 rounded-md' /></div>
-                      }
-                    </div>
-                  </div>
-                  {/* preserve aspect ratio */}
-                  <div className='flex flex-col items-center justify-center gap-2'>
-                    <label htmlFor="preserveAspectRatio" className="form-label ">
-                      Preserve Aspect Ratio
-                    </label>
-                    <select
-                      id="preserveAspectRatio"
-                      className="form-select form-select-sm border border-gray-300 p-2 rounded-md"
-                      aria-label="Preserve Aspect Ratio options"
-                      value={preserveAspectRatio}
-                      onChange={handlePreserveAspectRatioChange}
-                    >
-                      {somePreserveAspectRatio.map((value) => (
-                        <option key={value} value={value}>
-                          {value}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
               </div>
             </div>
             <div className="flex-1 border-2 border-gray-300 rounded-md overflow-hidden">

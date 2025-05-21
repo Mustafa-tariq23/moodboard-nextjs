@@ -57,7 +57,7 @@ export default function ImageSearch({ onImageDragStart }: ImageSearchProps) {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md p-4 text-gray-700">
+    <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-2xl p-4 text-gray-700">
       <h2 className="text-xl font-bold mb-4">Image Search</h2>
 
       <form onSubmit={handleSearch} className="mb-4">
