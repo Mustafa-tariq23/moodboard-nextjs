@@ -35,6 +35,7 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { BrushCleaning, Download, Eraser, Pen, Redo2, Undo2, X } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 type CanvasImageType = {
   id: string;
   src: string;
@@ -447,7 +448,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                       <div className='flex flex-col items-center justify-center gap-2'>
                         <select
                           id="preserveAspectRatio"
-                          className="form-select form-select-sm border border-gray-300 p-2 rounded-md"
+                          className="form-select form-select-sm border border-gray-300 p-2 rounded-md cursor-pointer"
                           aria-label="Preserve Aspect Ratio options"
                           value={preserveAspectRatio}
                           onChange={handlePreserveAspectRatioChange}
@@ -461,7 +462,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                       </div>
                     </div>
                     <Button
-                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                       onClick={handleDownloadSketch}
                     >
                       <Download />
@@ -469,41 +470,53 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                   </div>
                 </div>
                 {/* filters */}
-                <div className='flex items-center justify-between w-full gap-4 pb-4'>
+                <div className='flex items-end justify-between w-full gap-4 pb-4'>
                   {/* pen width */}
                   <div className='flex items-center gap-4'>
                     <div className='flex flex-col items-start gap-1'>
-                      <label htmlFor="strokeWidth" className="form-label">
-                        Stroke width: {strokeWidth}
-                      </label>
-                      <input
-                        disabled={eraseMode}
-                        type="range"
-                        className="form-range"
-                        min="1"
-                        max="20"
-                        step="1"
-                        id="strokeWidth"
-                        value={strokeWidth}
-                        onChange={handleStrokeWidthChange}
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <label htmlFor="strokeWidth" className="form-label border py-1 px-1 text-sm rounded-md text-gray-500 cursor-pointer">
+                            Stroke width: {strokeWidth}
+                          </label>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-fit">
+                          <input
+                            disabled={eraseMode}
+                            type="range"
+                            className="form-range"
+                            min="1"
+                            max="20"
+                            step="1"
+                            id="strokeWidth"
+                            value={strokeWidth}
+                            onChange={handleStrokeWidthChange}
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
                     {/* eraser width */}
                     <div className='flex flex-col items-start gap-1'>
-                      <label htmlFor="eraserWidth" className="form-label">
-                        Eraser width: {eraserWidth}
-                      </label>
-                      <input
-                        disabled={!eraseMode}
-                        type="range"
-                        className="form-range"
-                        min="1"
-                        max="20"
-                        step="1"
-                        id="eraserWidth"
-                        value={eraserWidth}
-                        onChange={handleEraserWidthChange}
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <label htmlFor="eraserWidth" className="form-label border py-1 px-1 text-sm rounded-md text-gray-500 cursor-pointer">
+                            Eraser width: {eraserWidth}
+                          </label>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-fit">
+                          <input
+                            disabled={!eraseMode}
+                            type="range"
+                            className="form-range"
+                            min="1"
+                            max="20"
+                            step="1"
+                            id="eraserWidth"
+                            value={eraserWidth}
+                            onChange={handleEraserWidthChange}
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </div>
                   {/* pen color */}
@@ -515,6 +528,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                           type="color"
                           value={strokeColor}
                           onChange={handleStrokeColorChange}
+                          className='cursor-pointer'
                         />
                       </div>
                     </div>
@@ -525,6 +539,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                         type="color"
                         value={canvasColor}
                         onChange={handleCanvasColorChange}
+                        className='cursor-pointer'
                       />
                     </div>
                   </div>
