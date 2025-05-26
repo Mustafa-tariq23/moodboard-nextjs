@@ -120,3 +120,34 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom scrollbar styling */
+.scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Optional: For when you want thin styled scrollbars instead of hiding them */
+.scrollbar-thin {
+  scrollbar-width: thin; /* Firefox */
+  -ms-overflow-style: thin; /* IE and Edge */
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: var(--radius-sm);
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: var(--radius-sm);
+}

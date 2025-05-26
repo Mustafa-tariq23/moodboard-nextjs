@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
-  const page = "1";
+  const page = "3";
 
   const query = request.headers.get("query");
 

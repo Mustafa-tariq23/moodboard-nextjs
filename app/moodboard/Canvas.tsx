@@ -55,9 +55,19 @@ type CanvasProps = {
 export default function Canvas({ images, onImagesChange }: CanvasProps) {
   const canvasSketchRef = useRef<ReactSketchCanvasRef>(null);
 
+  const [canvasReady, setCanvasReady] = useState(false);
+
+  useEffect(() => {
+    if (canvasSketchRef.current !== null) {
+      setCanvasReady(true);
+    }
+  }, [canvasSketchRef.current]);
+
+
   const somePreserveAspectRatio = useMemo(
     () => [
       "AspectRatio",
+      "none",
       "xMinYMin",
       "xMidYMin",
       "xMaxYMin",
@@ -83,7 +93,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
   const [backgroundImage, setBackgroundImage] = useState("")
   const [preserveAspectRatio, setPreserveAspectRatio] = useState<SomePreserveAspectRatio>("AspectRatio");
 
-  const [open, setOpen] = useState(false);
+  // const [open, setOpen] = useState(false);
   const isInternalDrag = useRef(false);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -113,7 +123,6 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
   };
 
   // color functions
-
   const handleStrokeColorChange = (event: ChangeEvent<HTMLInputElement>) => {
     setStrokeColor(event.target.value);
   };
@@ -140,17 +149,17 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
     setPreserveAspectRatio(event.target.value as SomePreserveAspectRatio);
   };
 
-  const handleBackgroundImageChange = async (
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
-    try {
-      const imageSrc = await toBase64(event.target.value);
-      setBackgroundImage(imageSrc);
-      console.log(imageSrc);
-    } catch (error) {
-      console.error("Error converting image to base64:", error);
-    }
-  };
+  // const handleBackgroundImageChange = async (
+  //   event: ChangeEvent<HTMLInputElement>,
+  // ) => {
+  //   try {
+  //     const imageSrc = await toBase64(event.target.value);
+  //     setBackgroundImage(imageSrc);
+  //     console.log(imageSrc);
+  //   } catch (error) {
+  //     console.error("Error converting image to base64:", error);
+  //   }
+  // };
 
   // download image
 
@@ -329,7 +338,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
     return () => {
       window.removeEventListener('load', handleLoad);
     };
-  })
+  }, [])
 
   return (
 
@@ -339,7 +348,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
         <TabsTrigger value="draw">Drawing Canvas</TabsTrigger>
       </TabsList>
       <TabsContent value="images">
-        <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-xl p-4 text-gray-700 overflow-scroll" >
+        <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-xl opacity-80 p-4 text-gray-700 overflow-scroll" >
           <div className="flex justify-between items-center mb-4"
             onClick={() => setSelectedImageId("")}
           >
@@ -347,9 +356,9 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
             <div className="flex gap-2">
               <button
                 onClick={handleExportJSON}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <Download />
+                <Download className='w-4 h-4' />
               </button>
             </div>
           </div>
@@ -357,9 +366,10 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToParentElement]}>
             <div
               ref={canvasRef}
-              className="flex-1 relative bg-gray-100 border-2 border-dashed border-gray-300 rounded-md overflow-hidden"
+              className="flex-1 relative bg-gray-100 border-2 border-dashed border-gray-300 rounded-md overflow-hidden opacity-100"
               onDrop={handleDrop}
               onDragOver={handleDragOver}
+              onClick={() => setSelectedImageId("")}
             >
               {images.map((image) => (
                 <CanvasImage
@@ -384,7 +394,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
 
       <TabsContent value="draw">
         {activeTab === 'draw' && (
-          <div className="w-full h-full flex flex-col bg-white shadow-xl rounded-lg p-4 text-gray-700">
+          <div className="w-full h-full flex flex-col bg-white opacity-80 rounded-lg p-4 text-gray-700">
             <h2 className="text-xl font-bold text-center">Drawing Canvas</h2>
             <div className="flex justify-between items-center mb-4 p-0">
               <div className='flex flex-col justify-center items-center gap-2 w-full'>
@@ -429,38 +439,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                     </Button>
                   </div>
                   <div className='flex gap-6 items-center'>
-                    <div className='flex items-center justify-center gap-4'>
-                      {/* background image */}
-                      <div className='flex flex-col gap-2 items-center justify-center'>
-                        <div className='flex items-center gap-2'>
-                          <div
-                            className="form-control border border-gray-300 p-2 rounded-md w-full h-9 flex items-center justify-center cursor-pointer"
-                            onDrop={handleSketchImageDrop}
-                            onDragOver={(e) => e.preventDefault()}
-                          >
-                            {backgroundImage ? 'Image uploaded' : 'Drop image here...'}
-                          </div>
-                          {backgroundImage && <div onClick={() => setBackgroundImage("")}><X className='bg-white hover:bg-gray-300 rounded-md' /></div>
-                          }
-                        </div>
-                      </div>
-                      {/* preserve aspect ratio */}
-                      <div className='flex flex-col items-center justify-center gap-2'>
-                        <select
-                          id="preserveAspectRatio"
-                          className="form-select form-select-sm border border-gray-300 p-2 rounded-md cursor-pointer"
-                          aria-label="Preserve Aspect Ratio options"
-                          value={preserveAspectRatio}
-                          onChange={handlePreserveAspectRatioChange}
-                        >
-                          {somePreserveAspectRatio.map((value) => (
-                            <option key={value} value={value}>
-                              {value}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
+
                     <Button
                       className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                       onClick={handleDownloadSketch}
@@ -476,7 +455,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                     <div className='flex flex-col items-start gap-1'>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <label htmlFor="strokeWidth" className="form-label border py-1 px-1 text-sm rounded-md text-gray-500 cursor-pointer">
+                          <label htmlFor="strokeWidth" className="form-label border p-1 h-8 text-sm rounded-md text-gray-500 cursor-pointer">
                             Stroke width: {strokeWidth}
                           </label>
                         </PopoverTrigger>
@@ -499,7 +478,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                     <div className='flex flex-col items-start gap-1'>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <label htmlFor="eraserWidth" className="form-label border py-1 px-1 text-sm rounded-md text-gray-500 cursor-pointer">
+                          <label htmlFor="eraserWidth" className="form-label border p-1 h-8 text-sm rounded-md text-gray-500 cursor-pointer">
                             Eraser width: {eraserWidth}
                           </label>
                         </PopoverTrigger>
@@ -518,6 +497,38 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                         </PopoverContent>
                       </Popover>
                     </div>
+                    <div className='flex items-center justify-center gap-4'>
+                      {/* background image */}
+                      <div className='flex flex-col gap-2 items-center justify-center'>
+                        <div className='flex items-center gap-2'>
+                          <div
+                            className="form-control border border-gray-300 text-gray-500 text-sm rounded-md w-full h-8 flex items-center justify-center p-1 cursor-move"
+                            onDrop={handleSketchImageDrop}
+                            onDragOver={(e) => e.preventDefault()}
+                          >
+                            {backgroundImage ? 'Image uploaded' : 'Drop image here...'}
+                          </div>
+                          {backgroundImage && <div onClick={() => setBackgroundImage("")}><X className='bg-white hover:bg-gray-300 rounded-md' /></div>
+                          }
+                        </div>
+                      </div>
+                      {/* preserve aspect ratio */}
+                      <div className='flex flex-col items-center justify-center gap-2'>
+                        <select
+                          id="preserveAspectRatio"
+                          className="form-select form-select-sm border border-gray-300 text-gray-500 text-sm p-1 h-8 rounded-md cursor-pointer"
+                          aria-label="Preserve Aspect Ratio options"
+                          value={preserveAspectRatio}
+                          onChange={handlePreserveAspectRatioChange}
+                        >
+                          {somePreserveAspectRatio.map((value) => (
+                            <option key={value} value={value}>
+                              {value}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
                   </div>
                   {/* pen color */}
                   <div className='flex items-center gap-4'>
@@ -528,7 +539,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                           type="color"
                           value={strokeColor}
                           onChange={handleStrokeColorChange}
-                          className='cursor-pointer'
+                          className='cursor-pointer rounded-md'
                         />
                       </div>
                     </div>
@@ -539,7 +550,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                         type="color"
                         value={canvasColor}
                         onChange={handleCanvasColorChange}
-                        className='cursor-pointer'
+                        className='cursor-pointer rounded-md border-gray-300 border'
                       />
                     </div>
                   </div>
@@ -547,8 +558,12 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
 
               </div>
             </div>
-            <div className="flex-1 border-2 border-gray-300 rounded-md overflow-hidden">
+            <div className="flex-1 border-2 border-gray-300 rounded-md border-dashed overflow-hidden relative"
+              onDrop={handleSketchImageDrop}
+              onDragOver={(e) => e.preventDefault()}
+            >
               <ReactSketchCanvas
+                className="opacity-100"
                 ref={canvasSketchRef}
                 backgroundImage={backgroundImage}
                 preserveBackgroundImageAspectRatio={preserveAspectRatio}
@@ -557,8 +572,20 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                 strokeWidth={strokeWidth}
                 canvasColor={canvasColor}
                 eraserWidth={eraserWidth}
+                onStroke={() => setCanvasReady(true)}
               />
+
+              {/* Optional: Overlay to prompt user to draw */}
+              {!canvasReady && (
+                <div
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none text-gray-400"
+                  style={{ zIndex: 1 }}
+                >
+                  Draw your favourite sketch or drop an image here...
+                </div>
+              )}
             </div>
+
           </div>
         )}
       </TabsContent>

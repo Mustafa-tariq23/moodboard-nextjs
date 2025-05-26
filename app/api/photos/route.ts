@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const page = "1";
-  const limit = "8";
+  const limit = "30";
   const result: { id: string; urls: { regular: string }; alt_description: string }[] = [];
 
   const res = await fetch(

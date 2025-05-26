@@ -25,7 +25,8 @@ export default function ImageCard({ src, alt, onDragStart }: ImageCardProps) {
       />
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-500" />
+          {/* <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-500" /> */}
+          <div className='h-full w-full bg-gray-400 animate-caret-blink'></div>
         </div>
       )}
     </div>
