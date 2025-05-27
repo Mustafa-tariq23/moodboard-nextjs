@@ -8,6 +8,9 @@ import {
 
 import CanvasImage from '../../components/CanvasImage';
 
+import ReactCrop, { Crop as cropImage, PixelCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
+
 import html2canvas from 'html2canvas-pro';
 
 import {
@@ -34,7 +37,7 @@ import {
 } from "@/components/ui/tabs"
 
 import { Button } from '@/components/ui/button';
-import { BrushCleaning, Download, Eraser, Pen, Redo2, Undo2, X } from 'lucide-react';
+import { BrushCleaning, Crop, Download, Eraser, ImageUpscale, Pen, Redo2, Undo2, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 type CanvasImageType = {
@@ -86,13 +89,25 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
 
   const [activeTab, setActiveTab] = useState("images");
 
+  // const [cropMode, setCropMode] = useState(false);
+  const [crop, setCrop] = useState<cropImage>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const [showCropModal, setShowCropModal] = useState(false);
+
   const [eraseMode, setEraseMode] = useState(false);
   const [strokeWidth, setStrokeWidth] = useState(5);
   const [eraserWidth, setEraserWidth] = useState(10);
   const [strokeColor, setStrokeColor] = useState("#000000");
   const [canvasColor, setCanvasColor] = useState("#ffffff");
   const [backgroundImage, setBackgroundImage] = useState("")
+  const [originalImage, setOriginalImage] = useState("") // Add this line
   const [preserveAspectRatio, setPreserveAspectRatio] = useState<SomePreserveAspectRatio>("AspectRatio");
+
+  // Resize states
+  const [showResizeModal, setShowResizeModal] = useState(false);
+  const [resizeWidth, setResizeWidth] = useState('');
+  const [resizeHeight, setResizeHeight] = useState('');
+  const [currentImageForResize, setCurrentImageForResize] = useState<string | null>(null);
 
   // const [open, setOpen] = useState(false);
   const isInternalDrag = useRef(false);
@@ -184,7 +199,9 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
       if (file.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onload = () => {
-          setBackgroundImage(reader.result as string);
+          const result = reader.result as string;
+          setBackgroundImage(result);
+          setOriginalImage(result); // Store original
         };
         reader.readAsDataURL(file);
       }
@@ -199,7 +216,9 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
     if (file?.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = () => {
-        setBackgroundImage(reader.result as string);
+        const result = reader.result as string;
+        setBackgroundImage(result);
+        setOriginalImage(result); // Store original
       };
       reader.readAsDataURL(file);
       return;
@@ -211,10 +230,131 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
       try {
         const dataUrl = await toBase64(imageUrl);
         setBackgroundImage(dataUrl);
+        setOriginalImage(dataUrl); // Store original
       } catch (error) {
         console.error("Error loading image:", error);
       }
     }
+  };
+
+  // crop function
+
+  // crop function
+  const handleCropClick = () => {
+    if (!originalImage) return; // Use original image
+    setShowCropModal(true);
+    // Initialize crop to center 50% of image
+    setCrop({
+      unit: '%',
+      x: 25,
+      y: 25,
+      width: 50,
+      height: 50
+    });
+  };
+
+  // Update the applyCrop function with better handling
+  const applyCrop = () => {
+    if (!completedCrop || !originalImage) return;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const image = new Image();
+
+    image.onload = () => {
+      // Set canvas dimensions to match crop
+      canvas.width = completedCrop.width;
+      canvas.height = completedCrop.height;
+      
+      // Draw the cropped portion
+      ctx?.drawImage(
+        image,
+        completedCrop.x,
+        completedCrop.y,
+        completedCrop.width,
+        completedCrop.height,
+        0,
+        0,
+        completedCrop.width,
+        completedCrop.height
+      );
+      
+      // Generate high-quality PNG
+      const croppedImageUrl = canvas.toDataURL('image/png', 1.0);
+      
+      // First clear existing canvas content
+      canvasSketchRef.current?.clearCanvas();
+      
+      // Then update state - React will handle the rerender
+      setShowCropModal(false);
+      setCrop(undefined);
+      setCompletedCrop(undefined);
+      setCanvasReady(false);
+      
+      // Use setTimeout to ensure DOM updates before setting new background
+      setTimeout(() => {
+        setBackgroundImage(croppedImageUrl);
+      }, 50);
+    };
+
+    image.src = originalImage;
+  };
+
+  const cancelCrop = () => {
+    setShowCropModal(false);
+    setCrop(undefined);
+    setCompletedCrop(undefined);
+  };
+
+  // Resize functions
+  const handleResizeClick = () => {
+    if (!backgroundImage) return;
+    const img = new Image();
+    img.onload = () => {
+      setResizeWidth(img.width.toString());
+      setResizeHeight(img.height.toString());
+      setCurrentImageForResize(backgroundImage);
+      setShowResizeModal(true);
+    };
+    img.src = backgroundImage;
+  };
+
+  const applyResize = () => {
+    if (!currentImageForResize || !resizeWidth || !resizeHeight) return;
+
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const newWidth = parseInt(resizeWidth, 10);
+      const newHeight = parseInt(resizeHeight, 10);
+
+      if (isNaN(newWidth) || isNaN(newHeight) || newWidth <= 0 || newHeight <= 0) {
+        alert("Invalid dimensions. Please enter positive numbers for width and height.");
+        return;
+      }
+
+      canvas.width = newWidth;
+      canvas.height = newHeight;
+      ctx?.drawImage(img, 0, 0, newWidth, newHeight);
+
+      const resizedImageUrl = canvas.toDataURL('image/png', 1.0);
+
+      canvasSketchRef.current?.clearCanvas(); // Clear drawings
+      
+      setBackgroundImage(resizedImageUrl);
+      setOriginalImage(resizedImageUrl); // Update originalImage as well, so crop works on resized
+      setCanvasReady(false);
+      cancelResize(); // Close modal and reset states
+    };
+    img.src = currentImageForResize;
+  };
+
+  const cancelResize = () => {
+    setShowResizeModal(false);
+    setResizeWidth('');
+    setResizeHeight('');
+    setCurrentImageForResize(null);
   };
 
   // end of sketch canvas functions
@@ -542,39 +682,61 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                     {!backgroundImage && (
                       <div className='space-x-2 flex items-center justify-center w-fit'>
                         <Input type='file' className='h-8' placeholder='Browse File' onChange={(e) => handleFileInputChange(e)} />
-                          <span>OR</span>
+                        <span>OR</span>
                       </div>
                     )}
                     {/* background image */}
-                    <div className='flex flex-col gap-2 items-center justify-center'>
-                      <div className='flex items-center gap-2'>
+                    <div className='flex flex-col gap-4 items-center justify-center'>
+                      <div className='flex items-center gap-1 border px-3 py-1 rounded-md h-8'>
                         <div
-                          className="form-control border border-gray-300 text-gray-500 text-sm rounded-md w-full h-8 flex items-center justify-center px-3 py-1 cursor-move"
+                          className="form-control border-gray-300 text-gray-500 text-sm rounded-md w-full h-8 flex items-center justify-center cursor-move"
                           onDrop={handleSketchImageDrop}
                           onDragOver={(e) => e.preventDefault()}
                         >
                           {backgroundImage ? 'Image uploaded' : 'Drop image here...'}
                         </div>
-                        {backgroundImage && <div onClick={() => setBackgroundImage("")}><X className='bg-white hover:bg-gray-300 rounded-md' /></div>
+                        {backgroundImage && <div onClick={() => {
+                          setBackgroundImage("");
+                          setOriginalImage(""); // Clear both
+                        }}><X className='bg-gray-800 text-white hover:bg-gray-900 border rounded-full p-1 h-5 w-5' /></div>
                         }
                       </div>
                     </div>
-                    {/* preserve aspect ratio */}
+
+                    {/* edit options */}
                     {backgroundImage && (
-                      <div className='flex flex-col items-center justify-center gap-2'>
-                        <select
-                          id="preserveAspectRatio"
-                          className="form-select form-select-sm border border-gray-300 text-gray-500 text-sm p-1 h-8 rounded-md cursor-pointer"
-                          aria-label="Preserve Aspect Ratio options"
-                          value={preserveAspectRatio}
-                          onChange={handlePreserveAspectRatioChange}
+                      <div className='flex items-center justify-center gap-2'>
+                        {/* preserve aspect ratio */}
+                        <div className='flex flex-col items-center justify-center gap-2'>
+                          <select
+                            id="preserveAspectRatio"
+                            className="form-select form-select-sm border border-gray-300 text-gray-500 text-sm p-1 h-8 rounded-md cursor-pointer"
+                            aria-label="Preserve Aspect Ratio options"
+                            value={preserveAspectRatio}
+                            onChange={handlePreserveAspectRatioChange}
+                          >
+                            {somePreserveAspectRatio.map((value) => (
+                              <option key={value} value={value}>
+                                {value}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        {/* crop */}
+                        <div
+                          className={`h-8 w-8 border rounded-md flex items-center justify-center cursor-pointer ${showCropModal ? 'bg-blue-600 hover:bg-blue-700' : 'bg-black hover:bg-gray-800'
+                            }`}
+                          onClick={handleCropClick}
                         >
-                          {somePreserveAspectRatio.map((value) => (
-                            <option key={value} value={value}>
-                              {value}
-                            </option>
-                          ))}
-                        </select>
+                          <Crop className='text-white h-4 w-4' />
+                        </div>
+                        {/* resize */}
+                        <div 
+                          className='h-8 w-8 bg-black hover:bg-gray-800 border rounded-md flex items-center justify-center cursor-pointer'
+                          onClick={handleResizeClick}
+                        >
+                          <ImageUpscale className='text-white h-4 w-4' />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -582,11 +744,96 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
 
               </div>
             </div>
+            {/* Crop Modal */}
+            {showCropModal && originalImage && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg max-w-4xl max-h-[90vh] overflow-auto">
+                  <h3 className="text-lg font-semibold mb-4">Crop Image</h3>
+
+                  <div className="flex flex-col items-center gap-4">
+                    <ReactCrop
+                      crop={crop}
+                      onChange={(_, percentCrop) => setCrop(percentCrop)}
+                      onComplete={(c) => setCompletedCrop(c)}
+                      aspect={undefined} // Allow free aspect ratio
+                      minWidth={10}
+                      minHeight={10}
+                    >
+                      <img
+                        src={originalImage}
+                        alt="Crop preview"
+                        style={{ maxWidth: '70vw', maxHeight: '50vh' }}
+                        onLoad={(e) => {
+                          const { width, height } = e.currentTarget;
+                          setCrop({
+                            unit: '%',
+                            x: 25,
+                            y: 25,
+                            width: 50,
+                            height: 50
+                          });
+                        }}
+                      />
+                    </ReactCrop>
+
+                    <div className="flex gap-2">
+                      <Button onClick={applyCrop} className="bg-green-600 hover:bg-green-700">
+                        Apply Crop
+                      </Button>
+                      <Button onClick={cancelCrop} variant="outline">
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* Resize Modal */}
+            {showResizeModal && currentImageForResize && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+                  <h3 className="text-lg font-semibold mb-4">Resize Image</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="resizeWidth" className="block text-sm font-medium text-gray-700">Width (px)</label>
+                      <Input
+                        type="number"
+                        id="resizeWidth"
+                        value={resizeWidth}
+                        onChange={(e) => setResizeWidth(e.target.value)}
+                        className="mt-1 block w-full"
+                        placeholder="e.g., 800"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="resizeHeight" className="block text-sm font-medium text-gray-700">Height (px)</label>
+                      <Input
+                        type="number"
+                        id="resizeHeight"
+                        value={resizeHeight}
+                        onChange={(e) => setResizeHeight(e.target.value)}
+                        className="mt-1 block w-full"
+                        placeholder="e.g., 600"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2 mt-6">
+                      <Button onClick={applyResize} className="bg-green-600 hover:bg-green-700">
+                        Apply Resize
+                      </Button>
+                      <Button onClick={cancelResize} variant="outline">
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="flex-1 border-2 border-gray-300 rounded-md border-dashed overflow-hidden relative"
               onDrop={handleSketchImageDrop}
               onDragOver={(e) => e.preventDefault()}
             >
               <ReactSketchCanvas
+                key={backgroundImage + Date.now()} // More aggressive remounting
                 className="opacity-100"
                 ref={canvasSketchRef}
                 backgroundImage={backgroundImage}
