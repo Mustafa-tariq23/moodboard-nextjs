@@ -36,6 +36,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { BrushCleaning, Download, Eraser, Pen, Redo2, Undo2, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
 type CanvasImageType = {
   id: string;
   src: string;
@@ -176,6 +177,19 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
   };
 
   // image function
+
+  const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          setBackgroundImage(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
 
   const handleSketchImageDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -455,7 +469,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                     <div className='flex flex-col items-start gap-1'>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <label htmlFor="strokeWidth" className="form-label border p-1 h-8 text-sm rounded-md text-gray-500 cursor-pointer">
+                          <label htmlFor="strokeWidth" className="form-label border px-3 py-1 h-8 text-sm rounded-md text-gray-500 cursor-pointer">
                             Stroke width: {strokeWidth}
                           </label>
                         </PopoverTrigger>
@@ -478,7 +492,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                     <div className='flex flex-col items-start gap-1'>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <label htmlFor="eraserWidth" className="form-label border p-1 h-8 text-sm rounded-md text-gray-500 cursor-pointer">
+                          <label htmlFor="eraserWidth" className="form-label border px-3 py-1 h-8 text-sm rounded-md text-gray-500 cursor-pointer">
                             Eraser width: {eraserWidth}
                           </label>
                         </PopoverTrigger>
@@ -496,38 +510,6 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                           />
                         </PopoverContent>
                       </Popover>
-                    </div>
-                    <div className='flex items-center justify-center gap-4'>
-                      {/* background image */}
-                      <div className='flex flex-col gap-2 items-center justify-center'>
-                        <div className='flex items-center gap-2'>
-                          <div
-                            className="form-control border border-gray-300 text-gray-500 text-sm rounded-md w-full h-8 flex items-center justify-center p-1 cursor-move"
-                            onDrop={handleSketchImageDrop}
-                            onDragOver={(e) => e.preventDefault()}
-                          >
-                            {backgroundImage ? 'Image uploaded' : 'Drop image here...'}
-                          </div>
-                          {backgroundImage && <div onClick={() => setBackgroundImage("")}><X className='bg-white hover:bg-gray-300 rounded-md' /></div>
-                          }
-                        </div>
-                      </div>
-                      {/* preserve aspect ratio */}
-                      <div className='flex flex-col items-center justify-center gap-2'>
-                        <select
-                          id="preserveAspectRatio"
-                          className="form-select form-select-sm border border-gray-300 text-gray-500 text-sm p-1 h-8 rounded-md cursor-pointer"
-                          aria-label="Preserve Aspect Ratio options"
-                          value={preserveAspectRatio}
-                          onChange={handlePreserveAspectRatioChange}
-                        >
-                          {somePreserveAspectRatio.map((value) => (
-                            <option key={value} value={value}>
-                              {value}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
                     </div>
                   </div>
                   {/* pen color */}
@@ -553,6 +535,48 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                         className='cursor-pointer rounded-md border-gray-300 border'
                       />
                     </div>
+                  </div>
+                </div>
+                <div>
+                  <div className='flex items-center justify-center gap-2'>
+                    {!backgroundImage && (
+                      <div className='space-x-2 flex items-center justify-center w-fit'>
+                        <Input type='file' className='h-8' placeholder='Browse File' onChange={(e) => handleFileInputChange(e)} />
+                          <span>OR</span>
+                      </div>
+                    )}
+                    {/* background image */}
+                    <div className='flex flex-col gap-2 items-center justify-center'>
+                      <div className='flex items-center gap-2'>
+                        <div
+                          className="form-control border border-gray-300 text-gray-500 text-sm rounded-md w-full h-8 flex items-center justify-center px-3 py-1 cursor-move"
+                          onDrop={handleSketchImageDrop}
+                          onDragOver={(e) => e.preventDefault()}
+                        >
+                          {backgroundImage ? 'Image uploaded' : 'Drop image here...'}
+                        </div>
+                        {backgroundImage && <div onClick={() => setBackgroundImage("")}><X className='bg-white hover:bg-gray-300 rounded-md' /></div>
+                        }
+                      </div>
+                    </div>
+                    {/* preserve aspect ratio */}
+                    {backgroundImage && (
+                      <div className='flex flex-col items-center justify-center gap-2'>
+                        <select
+                          id="preserveAspectRatio"
+                          className="form-select form-select-sm border border-gray-300 text-gray-500 text-sm p-1 h-8 rounded-md cursor-pointer"
+                          aria-label="Preserve Aspect Ratio options"
+                          value={preserveAspectRatio}
+                          onChange={handlePreserveAspectRatioChange}
+                        >
+                          {somePreserveAspectRatio.map((value) => (
+                            <option key={value} value={value}>
+                              {value}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
 
