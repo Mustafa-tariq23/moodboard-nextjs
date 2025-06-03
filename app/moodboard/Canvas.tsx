@@ -2,7 +2,6 @@ import {
   useState,
   useRef,
   type ChangeEvent,
-  useMemo,
   useEffect,
   useCallback
 } from 'react';
@@ -38,35 +37,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
-type CanvasImageType = {
-  id: string;
-  src: string;
-  position: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-};
-
-type CanvasProps = {
-  images: CanvasImageType[];
-  onImagesChange: (images: CanvasImageType[]) => void;
-};
-
-type PreserveAspectRatioOption =
-  | "AspectRatio"
-  | "none"
-  | "xMinYMin"
-  | "xMidYMin"
-  | "xMaxYMin"
-  | "xMinYMid"
-  | "xMidYMid"
-  | "xMaxYMid"
-  | "xMinYMax"
-  | "xMidYMax"
-  | "xMaxYMax";
-
+// types import
+import type { CanvasProps, CanvasImageType, PreserveAspectRatioOption } from '@/components/types/type';
 const PRESERVE_ASPECT_RATIO_OPTIONS: PreserveAspectRatioOption[] = [
   "AspectRatio",
   "none",
@@ -596,9 +568,9 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
   const handleResizeStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     setIsResizing(true);
-    
+
     let clientX, clientY;
-    
+
     if ('touches' in e) {
       clientX = e.touches[0].clientX;
       clientY = e.touches[0].clientY;
@@ -606,9 +578,9 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
       clientX = e.clientX;
       clientY = e.clientY;
     }
-    
+
     setInitialPos({ x: clientX, y: clientY });
-    
+
     if (canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
       setInitialSize({ width: rect.width, height: rect.height });
@@ -692,7 +664,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                   size="sm"
                 >
                   <Download className='w-4 h-4' />
-                  <span className="ml-2 hidden sm:inline">Export</span>
+                  <span className="hidden sm:inline">Download</span>
                 </Button>
               </div>
             </div>
@@ -733,9 +705,9 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                     </span>
                   </div>
                 )}
-                
+
                 {!isExpanded && (
-                  <div 
+                  <div
                     className="absolute bottom-0 right-0 w-6 h-6 bg-gray-400 opacity-70 hover:opacity-100 cursor-se-resize flex items-center justify-center rounded-tl-md"
                     onMouseDown={handleResizeStart}
                     onTouchStart={handleResizeStart}
@@ -772,10 +744,10 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                   onClick={handleDownloadSketch}
                   size="sm"
                   aria-label="Download drawing"
-                  className='w-1/2'
+                  className='w-1/2 bg-blue-500 text-white rounded-md hover:bg-blue-600'
                 >
                   <Download className="w-4 h-4" />
-                  <span className="ml-1 sm:inline">Download</span>
+                  <span className="sm:inline">Download</span>
                 </Button>
               </div>
             </div>
@@ -1076,7 +1048,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
             )}
 
             {/* Canvas */}
-            <div 
+            <div
               className="flex-1 border-2 border-gray-300 rounded-md border-dashed overflow-hidden relative min-h-[400px] sm:min-h-[400px]"
               style={{
                 height: isExpanded ? 'calc(100vh - 200px)' : 'auto',
@@ -1109,9 +1081,9 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                   </span>
                 </div>
               )}
-              
+
               {!isExpanded && (
-                <div 
+                <div
                   className="absolute bottom-0 right-0 w-6 h-6 bg-gray-400 opacity-70 hover:opacity-100 cursor-se-resize flex items-center justify-center rounded-tl-md"
                   onMouseDown={handleResizeStart}
                   onTouchStart={handleResizeStart}
