@@ -1,5 +1,6 @@
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
+import Image from 'next/image';
 
 type Position = {
   x: number;
@@ -50,7 +51,14 @@ export default function CanvasImage({
         onClick();
       }}
     >
-      <img src={src} crossOrigin="anonymous" alt="Canvas image" className="w-full h-full object-cover" />
+      <Image 
+        src={src} 
+        alt="Canvas image" 
+        fill
+        className="object-cover" 
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        priority={false}
+      />
       {isSelected && (
         <button
           className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"

@@ -6,6 +6,6 @@ export default function Home() {
   const router = useRouter();
   useEffect(() => {
     router.push("/moodboard");
-  }, []);
+  }, [router]);
   return;
 }

@@ -38,7 +38,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
 // types import
-import type { CanvasProps, CanvasImageType, PreserveAspectRatioOption } from '@/components/types/type';
+import type { CanvasProps, PreserveAspectRatioOption } from '@/components/types/type';
 const PRESERVE_ASPECT_RATIO_OPTIONS: PreserveAspectRatioOption[] = [
   "AspectRatio",
   "none",
@@ -117,7 +117,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
   const isInternalDrag = useRef(false);
 
   // State
-  const [activeTab, setActiveTab] = useState("images");
+  // const [activeTab, setActiveTab] = useState("images");
   const [canvasReady, setCanvasReady] = useState(false);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
@@ -172,7 +172,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
     if (canvasSketchRef.current) {
       setCanvasReady(true);
     }
-  }, [canvasSketchRef.current]);
+  }, []); // Remove canvasSketchRef.current dependency
 
   // Remove mask attribute on load
   useEffect(() => {
@@ -560,10 +560,6 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
     }
   }, [isExpanded]);
 
-  const setCustomCanvasSize = useCallback((width: string, height: string) => {
-    setCanvasSize({ width, height });
-  }, []);
-
   // Start resize with mouse
   const handleResizeStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
@@ -630,7 +626,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
   return (
     <div className={`w-full h-full ${isExpanded ? 'fixed inset-0 z-50 bg-white' : ''}`}>
       <Tabs
-        onValueChange={setActiveTab}
+        // onValueChange={setActiveTab}
         defaultValue="images"
         className="w-full h-full flex flex-col"
       >
