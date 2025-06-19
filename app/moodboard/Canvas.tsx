@@ -630,9 +630,9 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
         defaultValue="images"
         className="w-full h-full flex flex-col"
       >
-        <TabsList className="grid w-full grid-cols-2 shrink-0">
-          <TabsTrigger value="images">MoodBoard</TabsTrigger>
-          <TabsTrigger value="draw">Drawing Canvas</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 shrink-0 bg-white">
+          <TabsTrigger value="images" >MoodBoard</TabsTrigger>
+          <TabsTrigger value="draw" >Drawing Canvas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="images" className="flex-1 overflow-hidden">
@@ -756,8 +756,10 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                   type="button"
                   variant={eraseMode ? "outline" : "default"}
                   onClick={handlePenClick}
+                  className={`bg-black text-white hover:bg-gray-800 ${eraseMode ? 'opacity-50 cursor-pointer' : ''}`}
                   size="sm"
                   aria-label="Pen tool"
+
                 >
                   <Pen />
                 </Button>
@@ -765,6 +767,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                   type="button"
                   variant={!eraseMode ? "outline" : "default"}
                   onClick={handleEraserClick}
+                  className={`bg-black text-white hover:bg-gray-800 ${!eraseMode ? 'opacity-50 cursor-pointer' : ''}`}
                   size="sm"
                   aria-label="Eraser tool"
                 >
@@ -774,6 +777,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                   type="button"
                   variant="outline"
                   onClick={handleUndoClick}
+                  className={`bg-black text-white hover:bg-gray-800`}
                   size="sm"
                   aria-label="Undo"
                 >
@@ -783,6 +787,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                   type="button"
                   variant="outline"
                   onClick={handleRedoClick}
+                  className={`bg-black text-white hover:bg-gray-800`}
                   size="sm"
                   aria-label="Redo"
                 >
@@ -791,6 +796,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                 <Button
                   variant="destructive"
                   onClick={handleClearClick}
+                  className={`bg-red-500 text-white hover:bg-red-600`}
                   size="sm"
                   aria-label="Clear canvas"
                 >
@@ -811,7 +817,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                       <input
                         disabled={eraseMode}
                         type="range"
-                        className="form-range w-full"
+                        className="form-range w-full h-fit flex items-center justify-center"
                         min="1"
                         max="20"
                         step="1"
@@ -831,7 +837,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                       <input
                         disabled={!eraseMode}
                         type="range"
-                        className="form-range w-full"
+                        className="form-range w-full h-fit flex items-center justify-center"
                         min="1"
                         max="20"
                         step="1"
@@ -968,7 +974,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
             {showCropModal && originalImage && (
               <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
                 <div className="bg-white p-4 sm:p-6 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
-                  <h3 className="text-lg font-semibold mb-4">Crop Image</h3>
+                  <h3 className="text-lg font-semibold mb-4">Crop Image (zoom in or zoom out to adjust the dimensions)</h3>
                   <div className="flex flex-col items-center gap-4">
                     <div className='relative w-full h-[40vh] sm:h-[50vh] bg-gray-200'>
                       <Cropper
@@ -982,7 +988,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                       />
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto">
-                      <Button onClick={applyCrop} className="flex-1 sm:flex-none">
+                      <Button onClick={applyCrop} className="flex-1 sm:flex-none bg-blue-500 text-white rounded-md hover:bg-blue-600">
                         Apply Crop
                       </Button>
                       <Button onClick={cancelCrop} variant="outline" className="flex-1 sm:flex-none">
@@ -1031,7 +1037,7 @@ export default function Canvas({ images, onImagesChange }: CanvasProps) {
                       />
                     </div>
                     <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
-                      <Button onClick={applyResize} className="w-full sm:w-auto">
+                      <Button onClick={applyResize} className="flex-1 sm:flex-none bg-blue-500 text-white rounded-md hover:bg-blue-600">
                         Apply Resize
                       </Button>
                       <Button onClick={cancelResize} variant="outline" className="w-full sm:w-auto">
