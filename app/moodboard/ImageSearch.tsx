@@ -82,7 +82,7 @@ export default function ImageSearch({ onImageDragStart }: ImageSearchProps) {
           <Button
             type="submit"
             disabled={isLoading || !searchQuery.trim()}
-            className="min-w-[100px]"
+            className="min-w-[100px] bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
